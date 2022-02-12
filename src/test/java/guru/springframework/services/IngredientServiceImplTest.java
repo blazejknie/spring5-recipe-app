@@ -16,9 +16,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 public class IngredientServiceImplTest {
@@ -44,7 +43,10 @@ public class IngredientServiceImplTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        ingredientService = new IngredientServiceImpl(recipeRepository, ingredientToIngredientCommand, ingredientCommandToIngredient, unitOfMeasureRepository);
+        ingredientService = new IngredientServiceImpl(recipeRepository,
+                ingredientToIngredientCommand,
+                ingredientCommandToIngredient,
+                unitOfMeasureRepository);
     }
 
     @Test
@@ -103,4 +105,26 @@ public class IngredientServiceImplTest {
         verify(recipeRepository).save(any());
 
     }
+
+    @Test
+    public void testDeleteIngredient() {
+        //given
+        Recipe recipe = new Recipe();
+        Ingredient ingredient = new Ingredient();
+        ingredient.setId(3L);
+        recipe.addIngredient(ingredient);
+
+        Optional<Recipe> optionalRecipe = Optional.of(recipe);
+
+        when(recipeRepository.findById(anyLong())).thenReturn(optionalRecipe);
+        //when
+        ingredientService.deleteByRecipeIdAndIngredientId(1L, 3L);
+
+        //then
+        verify(recipeRepository).findById(anyLong());
+        verify(recipeRepository).save(any(Recipe.class));
+
+    }
+
+
 }

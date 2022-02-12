@@ -1,15 +1,14 @@
 package guru.springframework.domain;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
-@Slf4j
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @Entity
 public class Ingredient {
     @Id
