@@ -2,6 +2,7 @@ package guru.springframework.controllers;
 
 import guru.springframework.commands.RecipeCommand;
 import guru.springframework.domain.Recipe;
+import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.services.RecipeService;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class RecipeControllerTest {
     public static final long ID = 1L;
 
     @Mock
-    RecipeService service;
+    RecipeService recipeService;
 
     RecipeController controller;
 
@@ -34,7 +35,7 @@ public class RecipeControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        controller = new RecipeController(service);
+        controller = new RecipeController(recipeService);
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
@@ -44,11 +45,19 @@ public class RecipeControllerTest {
         Recipe recipe = new Recipe();
         recipe.setId(ID);
 
-        when(service.getRecipeById(ID)).thenReturn(recipe);
+        when(recipeService.getRecipeById(ID)).thenReturn(recipe);
 
         mockMvc.perform(get("/recipe/1/show"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("recipe/show"));
+    }
+
+    @Test
+    public void testGetRecipeNotFound() throws Exception {
+        when(recipeService.getRecipeById(anyLong())).thenThrow(NotFoundException.class);
+
+        mockMvc.perform(get("/recipe/1/show"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -65,12 +74,12 @@ public class RecipeControllerTest {
         RecipeCommand command = new RecipeCommand();
         command.setId(2L);
         //when
-        when(service.saveRecipeCommand(any())).thenReturn(command);
+        when(recipeService.saveRecipeCommand(any())).thenReturn(command);
         //then
         mockMvc.perform(post("/recipe")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-     //                   .param("id", "")
-       //                 .param("")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        //                   .param("id", "")
+                        //                 .param("")
                 )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/recipe/2/show"));
@@ -82,7 +91,7 @@ public class RecipeControllerTest {
         RecipeCommand command = new RecipeCommand();
         command.setId(2L);
 
-        when(service.findCommandById(anyLong())).thenReturn(command);
+        when(recipeService.findCommandById(anyLong())).thenReturn(command);
 
         mockMvc.perform(get("/recipe/1/update"))
                 .andExpect(status().isOk())
@@ -96,7 +105,7 @@ public class RecipeControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/index"));
 
-        verify(service).deleteById(anyLong());
+        verify(recipeService).deleteById(anyLong());
     }
 
 }

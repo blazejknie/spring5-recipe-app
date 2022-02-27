@@ -3,6 +3,7 @@ package guru.springframework.services;
 import guru.springframework.commands.RecipeCommand;
 import guru.springframework.converters.*;
 import guru.springframework.domain.Recipe;
+import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.repositories.RecipeRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class RecipeServiceImplTest {
     RecipeServiceImpl recipeService;
 
     @Mock
-    RecipeRepository repository;
+    RecipeRepository recipeRepository;
 
     @Mock
     RecipeCommandToRecipe recipeCommandToRecipe;
@@ -37,7 +38,7 @@ public class RecipeServiceImplTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        recipeService = new RecipeServiceImpl(repository, recipeCommandToRecipe, recipeToRecipeCommand);
+        recipeService = new RecipeServiceImpl(recipeRepository, recipeCommandToRecipe, recipeToRecipeCommand);
 
     }
 
@@ -48,13 +49,13 @@ public class RecipeServiceImplTest {
         Set<Recipe> recipesData = new HashSet<>();
         recipesData.add(recipe);
 
-        when(repository.findAll()).thenReturn(recipesData);
+        when(recipeRepository.findAll()).thenReturn(recipesData);
 
         Set<Recipe> returnedRecipes = recipeService.getRecipes();
 
         assertEquals(1, returnedRecipes.size());
-        verify(repository).findAll();
-        verify(repository, never()).findById(anyLong());
+        verify(recipeRepository).findAll();
+        verify(recipeRepository, never()).findById(anyLong());
     }
 
     @Test
@@ -63,14 +64,24 @@ public class RecipeServiceImplTest {
         recipe.setId(1L);
         Optional<Recipe> optionalRecipe = Optional.of(recipe);
 
-        when(repository.findById(anyLong())).thenReturn(optionalRecipe);
+        when(recipeRepository.findById(anyLong())).thenReturn(optionalRecipe);
 
 
         Recipe recipeById = recipeService.getRecipeById(1L);
         assertNotNull("Null recipe returned", recipeById);
-        verify(repository).findById(anyLong());
-        verify(repository, never()).findAll();
+        verify(recipeRepository).findById(anyLong());
+        verify(recipeRepository, never()).findAll();
 
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testGetRecipeById() {
+
+        Optional<Recipe> optionalRecipe = Optional.empty();
+
+        when(recipeRepository.findById(anyLong())).thenReturn(optionalRecipe);
+
+        Recipe recipeReturned = recipeService.getRecipeById(1L);
     }
 
     @Test
@@ -84,7 +95,7 @@ public class RecipeServiceImplTest {
         recipeCommand.setId(1L);
 
         //when
-        when(repository.findById(anyLong())).thenReturn(recipeOptional);
+        when(recipeRepository.findById(anyLong())).thenReturn(recipeOptional);
 
         when(recipeToRecipeCommand.convert(any())).thenReturn(recipeCommand);
 
@@ -93,8 +104,8 @@ public class RecipeServiceImplTest {
 
         assertNotNull("Null recipe returned!", commandById);
         assertEquals(recipe.getId(), commandById.getId());
-        verify(repository).findById(anyLong());
-        verify(repository, never()).findAll();
+        verify(recipeRepository).findById(anyLong());
+        verify(recipeRepository, never()).findAll();
     }
 
     @Test
@@ -106,7 +117,7 @@ public class RecipeServiceImplTest {
         recipeService.deleteById(idValue);
 
         //then
-        verify(repository).deleteById(anyLong());
+        verify(recipeRepository).deleteById(anyLong());
     }
 
 }
