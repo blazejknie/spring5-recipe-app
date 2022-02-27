@@ -57,9 +57,16 @@ public class RecipeControllerTest {
         when(recipeService.getRecipeById(anyLong())).thenThrow(NotFoundException.class);
 
         mockMvc.perform(get("/recipe/1/show"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("404error"));
     }
 
+    @Test
+    public void testGetRecipeBadRecipeId() throws Exception {
+        mockMvc.perform(get("/recipe/abc/show"))
+                .andExpect(status().isBadRequest())
+                .andExpect(view().name("400error"));
+    }
     @Test
     public void testGetNewRecipeForm() throws Exception {
         mockMvc.perform(get("/recipe/new"))
